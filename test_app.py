@@ -137,7 +137,6 @@ def test_invalid_status_transition():
     )
     ticket_id = ticket_resp.json()["id"]
 
-    # Try skipping OPEN -> RESOLVED (Illegal, must go to IN_PROGRESS first)
     bad_transition = client.patch(
         f"/tickets/{ticket_id}/status",
         headers={"Authorization": f"Bearer {token}"},
@@ -173,7 +172,6 @@ def test_cannot_move_to_in_progress_without_agent():
     )
     ticket_id = ticket_resp.json()["id"]
 
-    # Try moving to IN_PROGRESS without assigning an agent first
     resp = client.patch(
         f"/tickets/{ticket_id}/status",
         headers={"Authorization": f"Bearer {token}"},
