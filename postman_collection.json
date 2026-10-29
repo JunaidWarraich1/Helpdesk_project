@@ -1,0 +1,71 @@
+{
+  "info": {
+    "name": "Helpdesk API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Register User",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"employee@test.com\",\n  \"full_name\": \"Test Employee\",\n  \"password\": \"password123\",\n  \"role\": \"EMPLOYEE\"\n}"
+        },
+        "url": {"raw": "http://127.0.0.1:8000/auth/register"}
+      }
+    },
+    {
+      "name": "2. Login",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"employee@test.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {"raw": "http://127.0.0.1:8000/auth/login"}
+      }
+    },
+    {
+      "name": "3. Get Profile",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/users/me"}
+      }
+    },
+    {
+      "name": "4. Create Ticket",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"VPN connection failing\",\n  \"description\": \"Unable to connect to internal company network\",\n  \"category\": \"NETWORK\",\n  \"priority\": \"HIGH\"\n}"
+        },
+        "url": {"raw": "http://127.0.0.1:8000/tickets"}
+      }
+    },
+    {
+      "name": "5. List Tickets (Search & Filter)",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/tickets?status=OPEN&limit=10"}
+      }
+    },
+    {
+      "name": "6. Dashboard Summary",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+        "url": {"raw": "http://127.0.0.1:8000/dashboard/summary"}
+      }
+    }
+  ]
+}
