@@ -1,56 +1,15 @@
 from datetime import datetime
-from typing import Optional
-from models import UserRole, TicketCategory, TicketPriority, TicketStatus
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
-
-
-class UserCreate(BaseModel):
-    email: EmailStr
-    full_name: str
-    password: str
-    role: UserRole = UserRole.EMPLOYEE
-
-    @field_validator("full_name")
-    @classmethod
-    def validate_full_name(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
-            raise ValueError("Full name cannot be blank")
-        return v
-
-    @field_validator("password")
-    @classmethod
-    def validate_password(cls, v: str) -> str:
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters long")
-        return v
-
-
-class UserResponse(BaseModel):
-    id: int
-    email: str
-    full_name: str
-    role: UserRole
-    created_at: datetime
-    model_config = ConfigDict(from_attributes=True)
-
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+from typing import Optional, Any
+from pydantic import BaseModel, ConfigDict, ValidationInfo, field_validator
+from app.models.ticket import TicketCategory, TicketPriority, TicketStatus
 
 
 class TicketCreate(BaseModel):
+    """Schema for ticket creation. assigned_to is strictly omitted and controlled by admins."""
     title: str
     description: str
     category: TicketCategory
     priority: TicketPriority = TicketPriority.MEDIUM
-    assigned_to: Optional[int] = None
 
     @field_validator("title")
     @classmethod
@@ -70,21 +29,44 @@ class TicketCreate(BaseModel):
 
 
 class TicketUpdate(BaseModel):
+    """Schema for updating ticket fields with strict rejection of nulls and blank strings."""
     title: Optional[str] = None
     description: Optional[str] = None
     category: Optional[TicketCategory] = None
     priority: Optional[TicketPriority] = None
 
+    @field_validator("title", "description", mode="before")
+    @classmethod
+    def validate_text_fields(cls, v: Any, info: ValidationInfo) -> Any:
+        if v is None:
+            raise ValueError(f"{info.field_name} cannot be null")
+        if isinstance(v, str):
+            v_stripped = v.strip()
+            if not v_stripped:
+                raise ValueError(f"{info.field_name} cannot be blank")
+            return v_stripped
+        return v
+
+    @field_validator("category", "priority", mode="before")
+    @classmethod
+    def validate_enum_fields(cls, v: Any, info: ValidationInfo) -> Any:
+        if v is None:
+            raise ValueError(f"{info.field_name} cannot be null")
+        return v
+
 
 class TicketAssign(BaseModel):
+    """Schema for assigning ticket to an agent."""
     agent_id: int
 
 
 class TicketStatusUpdate(BaseModel):
+    """Schema for updating ticket status via state machine."""
     status: TicketStatus
 
 
 class TicketResponse(BaseModel):
+    """Schema for ticket response details."""
     id: int
     title: str
     description: str
@@ -99,14 +81,8 @@ class TicketResponse(BaseModel):
 
 
 class TicketListResponse(BaseModel):
+    """Schema for paginated ticket list response."""
     tickets: list[TicketResponse]
     total: int
     limit: int
     offset: int
-
-
-class DashboardSummary(BaseModel):
-    total_tickets: int
-    by_status: dict[str, int]
-    by_priority: dict[str, int]
-    assigned_to_me: Optional[int] = None
